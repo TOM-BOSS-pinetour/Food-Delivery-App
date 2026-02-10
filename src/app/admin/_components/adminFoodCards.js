@@ -42,8 +42,11 @@ export default function AdminFoodCard({
 
   const handleDelete = async (id) => {
     try {
+      const token = localStorage.getItem("token") || "";
       console.log(id);
-      const res = await axios.delete(`${BACK_END_URL}/food/${id}`);
+      const res = await axios.delete(`${BACK_END_URL}/food/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("Hool amjilttai ustglaa");
       setOpen(false);
       router.refresh();
@@ -78,6 +81,7 @@ export default function AdminFoodCard({
   const handleSubmit = async (values) => {
     try {
       const imageUrl = await uploadToCloudinary(values.foodImage);
+      const token = localStorage.getItem("token") || "";
 
       const formData = {
         foodName: values.foodName,
@@ -89,7 +93,10 @@ export default function AdminFoodCard({
       };
 
       const res = await axios.put(`${BACK_END_URL}/food`, formData, {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success("amjilttai shineclegdlee");

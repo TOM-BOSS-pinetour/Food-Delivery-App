@@ -34,9 +34,16 @@ export default function OrderInfo({
 
   const updateStatus = async (newStatus) => {
     try {
-      await axios.put(`${BACK_END_URL}/orders/${_id}/status`, {
-        status: newStatus,
-      });
+      const token = localStorage.getItem("token") || "";
+      await axios.put(
+        `${BACK_END_URL}/orders/${_id}/status`,
+        {
+          status: newStatus,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("Status updated");
       getOrders();
     } catch (err) {

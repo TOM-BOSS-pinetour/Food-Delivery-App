@@ -50,14 +50,21 @@ export default function AddNewFoodCard({ categoryId, categoryName }) {
     try {
       setIsLoading(true);
       const imageUrl = await uploadToCloudinary(values.foodImage);
+      const token = localStorage.getItem("token") || "";
 
-      await axios.post(`${BACK_END_URL}/food`, {
-        foodName: values.foodName,
-        foodPrice: values.foodPrice,
-        foodIngredients: values.foodIngredients,
-        foodImage: imageUrl,
-        category: categoryId,
-      });
+      await axios.post(
+        `${BACK_END_URL}/food`,
+        {
+          foodName: values.foodName,
+          foodPrice: values.foodPrice,
+          foodIngredients: values.foodIngredients,
+          foodImage: imageUrl,
+          category: categoryId,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("Hool amilttai nemegdlee");
       setOpen(false);
       setPreview(null);

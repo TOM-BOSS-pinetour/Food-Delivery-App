@@ -52,7 +52,10 @@ export const FoodCategoryProvider = ({ children }) => {
 
   const deleteCategory = async (id) => {
     try {
-      await axios.delete(`${BACK_END_URL}/category/${id}`);
+      const token = localStorage.getItem("token") || "";
+      await axios.delete(`${BACK_END_URL}/category/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("Category deleted!");
       fetchCategories();
     } catch (err) {

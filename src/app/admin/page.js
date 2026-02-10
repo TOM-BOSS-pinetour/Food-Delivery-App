@@ -48,31 +48,54 @@ export default function AdminPage() {
   } = useOrders();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+
+    const initAuth = async () => {
       const savedToken = localStorage.getItem("token");
+
       if (!savedToken) {
         window.location.href = "/auth/login";
-      } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setToken(jwtDecode(savedToken));
+        return;
+      }
+
+      try {
+        const decoded = jwtDecode(savedToken);
+
+        if (decoded?.role) {
+          setToken(decoded);
+          return;
+        }
+
+        const response = await axios.get(`${BACK_END_URL}/user/me`, {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        });
+        setToken({ ...decoded, role: response.data?.role });
+      } catch {
+        localStorage.removeItem("token");
+        window.location.href = "/auth/login";
+      } finally {
         setLoading(false);
       }
-      // if (token) {
-      //   const payload = JSON.parse(atob(token.split(".")[1]));
-      //   if (payload.role !== "admin") {
-      //   }
-      // }
-    }
+    };
+
+    initAuth();
   }, []);
 
   const updateOrdersStatus = async () => {
     try {
+      const accessToken = localStorage.getItem("token") || "";
       await Promise.all(
         selectedOrders.map((orderId) =>
-          axios.put(`${BACK_END_URL}/orders/${orderId}/status`, {
-            status: selectedStatus,
-            foodIds: [],
-          })
+          axios.put(
+            `${BACK_END_URL}/orders/${orderId}/status`,
+            {
+              status: selectedStatus,
+              foodIds: [],
+            },
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          )
         )
       );
 
@@ -124,9 +147,7 @@ export default function AdminPage() {
   if (token?.role !== "admin") {
     return (
       <div className="w-full h-screen flex justify-center items-center ">
-        <p className="font-semibold">
-          Fuck your sputid ass out of here. its not your place to be scumbag
-        </p>
+        <p className="font-semibold">Access denied. Admin rights required.</p>
       </div>
     );
   }

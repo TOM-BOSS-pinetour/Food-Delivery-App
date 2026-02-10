@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { BACK_END_URL } from "../_constants";
+import { toast } from "react-toastify";
 
 const OrdersContext = createContext();
 
@@ -48,7 +49,10 @@ export function OrdersProvider({ children }) {
 
   const getOrders = async () => {
     try {
-      const res = await axios.get(`${BACK_END_URL}/orders`);
+      const token = localStorage.getItem("token") || "";
+      const res = await axios.get(`${BACK_END_URL}/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const ordersWithEmail = res.data.map((order) => ({
         ...order,
         userEmail: order.user?.email || "Unknown",
@@ -71,11 +75,18 @@ export function OrdersProvider({ children }) {
 
   const updateSelectedStatus = async (newStatus) => {
     try {
+      const token = localStorage.getItem("token") || "";
       await Promise.all(
         selectedOrders.map((id) =>
-          axios.put(`${BACK_END_URL}/orders/${id}/status`, {
-            status: newStatus,
-          })
+          axios.put(
+            `${BACK_END_URL}/orders/${id}/status`,
+            {
+              status: newStatus,
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
         )
       );
       toast.success("Selected orders updated");
